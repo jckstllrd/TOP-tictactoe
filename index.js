@@ -108,8 +108,12 @@ const displayController = (function () {
     newCell.classList.toggle("cell");
     newCell.setAttribute("data-x", x);
     newCell.setAttribute("data-y", y);
-    newCell.addEventListener("click", handleCellClick);
     grid.appendChild(newCell);
+  }
+
+  function initiateCellEvents() {
+    const cells = document.querySelectorAll(".cell");
+    cells.forEach((cell) => cell.addEventListener("click", handleCellClick));
   }
 
   function handleCellClick(e) {
@@ -154,16 +158,22 @@ const displayController = (function () {
     );
   }
 
-  return { initiateGridCells, disableGridCells };
+  return { initiateGridCells, disableGridCells, initiateCellEvents };
 })();
 
 const game = (function () {
   function play() {
     // initialise board
-    displayController.initiateGridCells();
+
+    displayController.initiateCellEvents();
   }
 
-  return { play };
+  function start() {
+    displayController.initiateGridCells();
+    play()
+  }
+
+  return { start };
 })();
 
 function createPlayer(name) {
@@ -171,4 +181,4 @@ function createPlayer(name) {
   return { name };
 }
 
-game.play();
+game.start();
