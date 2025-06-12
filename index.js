@@ -1,25 +1,69 @@
+const game = (function () {
+  let playerOne;
+  let playerTwo;
+  let currentPlayer;
+
+  function play() {
+    // initialise board
+    displayController.initiateCellEvents();
+  }
+
+  function getWinner(marker) {
+    return currentPlayer;
+  }
+
+  function getCurrentPlayer() {
+    console.log(currentPlayer);
+
+    return currentPlayer;
+  }
+
+  function togglePlayerTurn() {
+    currentPlayer = currentPlayer === playerOne ? playerTwo : playerOne;
+  }
+
+  function setPlayers(player1, player2) {
+    playerOne = player1;
+    playerOne.setMarker("X");
+    playerTwo = player2;
+    playerTwo.setMarker("O");
+    currentPlayer = playerOne;
+    play();
+  }
+
+  function start() {
+    displayController.initiateGridCells();
+    displayController.initialiseGameForm();
+  }
+
+  return { start, setPlayers, togglePlayerTurn, getCurrentPlayer, getWinner };
+})();
+
 const gameboard = (function () {
   let board = [
     [" ", " ", " "],
     [" ", " ", " "],
     [" ", " ", " "],
   ];
-  let currentPlayer = "X";
 
-  function getCurrentPlayer() {
-    return currentPlayer;
+  let currentMarker = "X";
+
+  function getCurrentMarker() {
+    return currentMarker;
   }
 
   function toggleMarker() {
-    currentPlayer = currentPlayer === "X" ? "O" : "X";
+    currentMarker = currentMarker === "X" ? "O" : "X";
   }
 
   function makeMove(x, y) {
-    board[x][y] = currentPlayer;
+    board[x][y] = currentMarker;
     toggleMarker();
-    game.togglePlayerTurn();
+
     if (boardState()) {
       endGame(boardState());
+    } else {
+      game.togglePlayerTurn();
     }
     return board;
   }
@@ -95,9 +139,10 @@ const gameboard = (function () {
     console.log(`${marker} has won, ending game`);
 
     displayController.disableGridCells();
+    displayController.displayWinner(game.getWinner());
   }
 
-  return { getCurrentPlayer, makeMove };
+  return { getCurrentMarker, makeMove };
 })();
 
 const displayController = (function () {
@@ -112,20 +157,32 @@ const displayController = (function () {
     grid.appendChild(newCell);
   }
 
+  function displayWinner(player) {
+    const playerTurn = document.querySelector(".player-turn-div");
+    const winner = document.querySelector(".winner-div");
+    const winnerName = document.querySelector(".winner-name")
+    playerTurn.classList.toggle("hidden");
+    winner.classList.toggle("hidden");
+    winnerName.textContent = player.name;
+
+  }
+
   function displayCurrentPlayer() {
-    const name = game.getCurrentPlayer();
-    console.log('here');
-    
+    console.log("displaying");
+
+    const name = game.getCurrentPlayer().name;
+    console.log("here");
+    console.log("name");
+
     const playerTurn = document.querySelector(".player-turn");
     playerTurn.textContent = name;
-console.log(playerTurn, name);
-
+    console.log(playerTurn, name);
   }
 
   function initiateCellEvents() {
     const cells = document.querySelectorAll(".cell");
-    cells.forEach((cell) => cell.addEventListener("click", handleCellClick));
     displayCurrentPlayer();
+    cells.forEach((cell) => cell.addEventListener("click", handleCellClick));
   }
 
   function handleCellClick(e) {
@@ -134,7 +191,8 @@ console.log(playerTurn, name);
 
     gameboard.makeMove(x, y);
 
-    updateCell(e.target, gameboard.getCurrentPlayer());
+    updateCell(e.target, gameboard.getCurrentMarker());
+    displayCurrentPlayer();
   }
 
   function updateCell(cell, player) {
@@ -195,44 +253,19 @@ console.log(playerTurn, name);
     disableGridCells,
     initiateCellEvents,
     initialiseGameForm,
+    displayWinner,
   };
 })();
 
-const game = (function () {
-  let playerOne;
-  let playerTwo;
-  let currentPlayer;
-
-  function play() {
-    // initialise board
-    displayController.initiateCellEvents();
-  }
-
-  function getCurrentPlayer() {
-    return currentPlayer;
-  }
-
-  function togglePlayerTurn() {
-    currentPlayer = currentPlayer === playerOne ? playerTwo : playerTwo;
-  }
-
-  function setPlayers(player1, player2) {
-    playerOne = player1;
-    playerTwo = player2;
-    currentPlayer = playerOne.name;
-    play();
-  }
-
-  function start() {
-    displayController.initiateGridCells();
-    displayController.initialiseGameForm();
-  }
-
-  return { start, setPlayers, togglePlayerTurn, getCurrentPlayer };
-})();
-
 function createPlayer(name) {
-  return { name };
+  let marker;
+  function setMarker(m) {
+    marker = m;
+  }
+  function getMarker() {
+    return marker;
+  }
+  return { name, setMarker, getMarker };
 }
 
 game.start();
