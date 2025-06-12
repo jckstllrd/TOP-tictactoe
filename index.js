@@ -3,9 +3,16 @@ const game = (function () {
   let playerTwo;
   let currentPlayer;
 
-  function play() {
+  function twoPlayer() {
     // initialise board
     displayController.initiateCellEvents();
+  }
+
+  function singlePlayer() {
+    displayController.initiateCellEvents();
+    if (currentPlayer === playerTwo) {
+      takeBotTurn();
+    }
   }
 
   function getWinner(marker) {
@@ -13,27 +20,74 @@ const game = (function () {
   }
 
   function getCurrentPlayer() {
-    console.log(currentPlayer);
-
     return currentPlayer;
   }
 
+  // Update the togglePlayerTurn function in game module
   function togglePlayerTurn() {
     currentPlayer = currentPlayer === playerOne ? playerTwo : playerOne;
+    // Check if playerTwo is a bot and it's their turn
+    if (
+      typeof playerTwo.validateBot === "function" &&
+      currentPlayer === playerTwo
+    ) {
+      setTimeout(takeBotTurn, 500); // Add 500ms delay for better UX
+    }
   }
 
+  // Update setPlayers in game module
   function setPlayers(player1, player2) {
     playerOne = player1;
     playerOne.setMarker("X");
     playerTwo = player2;
     playerTwo.setMarker("O");
     currentPlayer = playerOne;
-    play();
+    try {
+      playerTwo.validateBot();
+      singlePlayer();
+    } catch (error) {
+      twoPlayer();
+    }
   }
 
   function start() {
     displayController.initiateGridCells();
     displayController.initialiseGameForm();
+  }
+  // Add this inside the game IIFE
+  function takeBotTurn() {
+    displayController.setBotTurn(true);
+
+    const availableMoves = getAvailableMoves();
+    if (availableMoves.length > 0) {
+      const randomMove =
+        availableMoves[Math.floor(Math.random() * availableMoves.length)];
+      const cell = document.querySelector(
+        `[data-x="${randomMove.x}"][data-y="${randomMove.y}"]`
+      );
+
+      if (cell) {
+        setTimeout(() => {
+          gameboard.makeMove(randomMove.x, randomMove.y);
+          displayController.updateCell(cell, gameboard.getCurrentMarker());
+          cell.removeEventListener("click", displayController.handleCellClick);
+          displayController.displayCurrentPlayer();
+          displayController.setBotTurn(false);
+        }, 500);
+      }
+    }
+  }
+
+  function getAvailableMoves() {
+    const moves = [];
+    for (let x = 0; x < 3; x++) {
+      for (let y = 0; y < 3; y++) {
+        if (gameboard.getBoard()[x][y] === " ") {
+          moves.push({ x, y });
+        }
+      }
+    }
+    return moves;
   }
 
   return { start, setPlayers, togglePlayerTurn, getCurrentPlayer, getWinner };
@@ -136,17 +190,20 @@ const gameboard = (function () {
   }
 
   function endGame(marker) {
-    console.log(`${marker} has won, ending game`);
-
     displayController.disableGridCells();
     displayController.displayWinner(game.getWinner());
   }
 
-  return { getCurrentMarker, makeMove };
+  function getBoard() {
+    return board;
+  }
+
+  return { getCurrentMarker, makeMove, getBoard };
 })();
 
 const displayController = (function () {
   // Set grid variable for use in the object
+  let isBotTurn = false;
   const grid = document.querySelector(".grid");
 
   function createCell(x, y) {
@@ -167,15 +224,9 @@ const displayController = (function () {
   }
 
   function displayCurrentPlayer() {
-    console.log("displaying");
-
     const name = game.getCurrentPlayer().name;
-    console.log("here");
-    console.log("name");
-
     const playerTurn = document.querySelector(".player-turn");
     playerTurn.textContent = name;
-    console.log(playerTurn, name);
   }
 
   function initiateCellEvents() {
@@ -183,13 +234,16 @@ const displayController = (function () {
     displayCurrentPlayer();
     cells.forEach((cell) => cell.addEventListener("click", handleCellClick));
   }
-
   function handleCellClick(e) {
+    if (isBotTurn) return;
+
     const x = e.target.getAttribute("data-x");
     const y = e.target.getAttribute("data-y");
 
-    gameboard.makeMove(x, y);
+    // Check if cell is already taken
+    if (e.target.textContent !== "") return;
 
+    gameboard.makeMove(x, y);
     updateCell(e.target, gameboard.getCurrentMarker());
     e.target.removeEventListener("click", handleCellClick);
     displayCurrentPlayer();
@@ -197,7 +251,7 @@ const displayController = (function () {
 
   function updateCell(cell, player) {
     // Handle visual updates only
-    cell.textContent = player === "X" ? "O" : "X";
+    cell.textContent = player;
   }
 
   function initiateGridCells() {
@@ -240,11 +294,21 @@ const displayController = (function () {
       const playerTwo = createPlayer(form.player2.value);
       game.setPlayers(playerOne, playerTwo);
     }
+
+    if (form.players.value == "one") {
+      const playerOne = createPlayer(form.player1.value);
+      const bot = createBot();
+      game.setPlayers(playerOne, bot);
+    }
   }
 
   function initialiseGameForm() {
     const formBtn = document.querySelector(".game-form-submit");
     formBtn.addEventListener("click", handleFormSubmit);
+  }
+
+  function setBotTurn(isBot) {
+    isBotTurn = isBot;
   }
 
   return {
@@ -253,6 +317,10 @@ const displayController = (function () {
     initiateCellEvents,
     initialiseGameForm,
     displayWinner,
+    handleCellClick,
+    setBotTurn,
+    updateCell,
+    displayCurrentPlayer
   };
 })();
 
@@ -269,9 +337,11 @@ function createPlayer(name) {
 
 function createBot() {
   const { name, setMarker, getMarker } = createPlayer("Bot");
-
+  function validateBot() {
+    return true;
+  }
   function takeTurn() {}
-  return { name, setMarker, getMarker };
+  return { name, setMarker, getMarker, validateBot };
 }
 
 game.start();
