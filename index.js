@@ -10,13 +10,14 @@ const gameboard = (function () {
     return currentPlayer;
   }
 
-  function togglePlayer() {
+  function toggleMarker() {
     currentPlayer = currentPlayer === "X" ? "O" : "X";
   }
 
   function makeMove(x, y) {
     board[x][y] = currentPlayer;
-    togglePlayer();
+    toggleMarker();
+    game.togglePlayerTurn();
     if (boardState()) {
       endGame(boardState());
     }
@@ -111,9 +112,20 @@ const displayController = (function () {
     grid.appendChild(newCell);
   }
 
+  function displayCurrentPlayer() {
+    const name = game.getCurrentPlayer();
+    console.log('here');
+    
+    const playerTurn = document.querySelector(".player-turn");
+    playerTurn.textContent = name;
+console.log(playerTurn, name);
+
+  }
+
   function initiateCellEvents() {
     const cells = document.querySelectorAll(".cell");
     cells.forEach((cell) => cell.addEventListener("click", handleCellClick));
+    displayCurrentPlayer();
   }
 
   function handleCellClick(e) {
@@ -158,24 +170,68 @@ const displayController = (function () {
     );
   }
 
-  return { initiateGridCells, disableGridCells, initiateCellEvents };
+  function handleFormSubmit(e) {
+    e.preventDefault();
+    const form = e.target.parentNode;
+    const scoreboard = document.querySelector(".scoreboard");
+
+    scoreboard.classList.toggle("hidden");
+    form.classList.toggle("hidden");
+
+    if (form.players.value == "two") {
+      const playerOne = createPlayer(form.player1.value);
+      const playerTwo = createPlayer(form.player2.value);
+      game.setPlayers(playerOne, playerTwo);
+    }
+  }
+
+  function initialiseGameForm() {
+    const formBtn = document.querySelector(".game-form-submit");
+    formBtn.addEventListener("click", handleFormSubmit);
+  }
+
+  return {
+    initiateGridCells,
+    disableGridCells,
+    initiateCellEvents,
+    initialiseGameForm,
+  };
 })();
 
 const game = (function () {
+  let playerOne;
+  let playerTwo;
+  let currentPlayer;
+
   function play() {
     // initialise board
     displayController.initiateCellEvents();
   }
 
-  function start() {
-    displayController.initiateGridCells();
+  function getCurrentPlayer() {
+    return currentPlayer;
   }
 
-  return { start };
+  function togglePlayerTurn() {
+    currentPlayer = currentPlayer === playerOne ? playerTwo : playerTwo;
+  }
+
+  function setPlayers(player1, player2) {
+    playerOne = player1;
+    playerTwo = player2;
+    currentPlayer = playerOne.name;
+    play();
+  }
+
+  function start() {
+    displayController.initiateGridCells();
+    displayController.initialiseGameForm();
+  }
+
+  return { start, setPlayers, togglePlayerTurn, getCurrentPlayer };
 })();
 
 function createPlayer(name) {
-  // Stuff
   return { name };
 }
 
