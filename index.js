@@ -164,13 +164,11 @@ const displayController = (function () {
 const game = (function () {
   function play() {
     // initialise board
-
     displayController.initiateCellEvents();
   }
 
   function start() {
     displayController.initiateGridCells();
-    play()
   }
 
   return { start };

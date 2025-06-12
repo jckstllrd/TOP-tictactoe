@@ -11,6 +11,29 @@
     <div class="container">
       <div class="game-details">
         <h1>Tic Tac Toe</h1>
+        <form action="#" class="game-form">
+          <legend>Select Number of players:</legend>
+          <div>
+            <label for="players">One</label>
+            <input type="radio" name="players" id="one" value="one" />
+          </div>
+          <div>
+            <label for="players">Two</label>
+            <input type="radio" name="players" id="two" value="two" />
+          </div>
+
+          <legend>Player names</legend>
+          <div class="player1-div">
+            <label for="player1">Player 1</label>
+            <input type="text" id="player1" />
+          </div>
+          <div class="player2-div">
+            <label for="player2">Player 2</label>
+            <input type="text" id="player2" />
+          </div>
+
+          <button type="submit">Start</button>
+        </form>
       </div>
       <div class="grid"></div>
     </div>
