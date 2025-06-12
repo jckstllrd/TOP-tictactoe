@@ -28,6 +28,7 @@ body {
   height: 600px;
   width: 600px;
   grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
 }
 
 .cell {
@@ -35,4 +36,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: 5rem;
+  font-weight: 500;
 }
+
+
