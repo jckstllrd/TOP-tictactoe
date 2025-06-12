@@ -160,11 +160,10 @@ const displayController = (function () {
   function displayWinner(player) {
     const playerTurn = document.querySelector(".player-turn-div");
     const winner = document.querySelector(".winner-div");
-    const winnerName = document.querySelector(".winner-name")
+    const winnerName = document.querySelector(".winner-name");
     playerTurn.classList.toggle("hidden");
     winner.classList.toggle("hidden");
     winnerName.textContent = player.name;
-
   }
 
   function displayCurrentPlayer() {
@@ -192,6 +191,7 @@ const displayController = (function () {
     gameboard.makeMove(x, y);
 
     updateCell(e.target, gameboard.getCurrentMarker());
+    e.target.removeEventListener("click", handleCellClick);
     displayCurrentPlayer();
   }
 
@@ -207,7 +207,6 @@ const displayController = (function () {
       }
     }
   }
-
   const removeEventListenerAll = (
     targets,
     type,
@@ -265,6 +264,13 @@ function createPlayer(name) {
   function getMarker() {
     return marker;
   }
+  return { name, setMarker, getMarker };
+}
+
+function createBot() {
+  const { name, setMarker, getMarker } = createPlayer("Bot");
+
+  function takeTurn() {}
   return { name, setMarker, getMarker };
 }
 
